@@ -109,7 +109,11 @@ public class RequestContext implements AuthorizableRequestContext {
     }
 
     public RequestAndSize parseRequest(ByteBuffer buffer) {
-        if (isUnsupportedApiVersionsRequest()) {
+        return staticParseRequest(header, buffer, connectionId, listenerName, principal);
+    }
+
+    public static RequestAndSize staticParseRequest(RequestHeader header, ByteBuffer buffer, String connectionId, ListenerName listenerName, KafkaPrincipal principal) {
+        if (isUnsupportedApiVersionsRequest(header)) {
             // Unsupported ApiVersion requests are treated as v0 requests and are not parsed
             ApiVersionsRequest apiVersionsRequest = new ApiVersionsRequest(new ApiVersionsRequestData(), (short) 0, header.apiVersion());
             return new RequestAndSize(apiVersionsRequest, 0);
@@ -150,13 +154,13 @@ public class RequestContext implements AuthorizableRequestContext {
         return body.serializeWithHeader(header.toResponseHeader(), apiVersion());
     }
 
-    private boolean isUnsupportedApiVersionsRequest() {
+    private static boolean isUnsupportedApiVersionsRequest(RequestHeader header) {
         return header.apiKey() == API_VERSIONS && !API_VERSIONS.isVersionSupported(header.apiVersion());
     }
 
     public short apiVersion() {
         // Use v0 when serializing an unhandled ApiVersion response
-        if (isUnsupportedApiVersionsRequest())
+        if (isUnsupportedApiVersionsRequest(header))
             return 0;
         return header.apiVersion();
     }

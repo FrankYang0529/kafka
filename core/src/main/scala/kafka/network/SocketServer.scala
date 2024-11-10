@@ -40,7 +40,7 @@ import org.apache.kafka.common.metrics.stats.{Avg, CumulativeSum, Meter, Rate}
 import org.apache.kafka.common.network.KafkaChannel.ChannelMuteEvent
 import org.apache.kafka.common.network.{ChannelBuilder, ChannelBuilders, ClientInformation, KafkaChannel, ListenerName, ListenerReconfigurable, NetworkSend, Selectable, Send, ServerConnectionId, Selector => KSelector}
 import org.apache.kafka.common.protocol.ApiKeys
-import org.apache.kafka.common.requests.{ApiVersionsRequest, RequestContext, RequestHeader}
+import org.apache.kafka.common.requests.{ApiVersionsRequest, RequestAndSize, RequestContext, RequestHeader}
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.utils.{KafkaThread, LogContext, Time, Utils}
 import org.apache.kafka.common.{Endpoint, KafkaException, MetricName, Reconfigurable}
@@ -1130,23 +1130,27 @@ private[kafka] class Processor(
                 expiredConnectionsKilledCount.record(null, 1, 0)
               } else {
                 val connectionId = receive.source
-                val context = new RequestContext(header, connectionId, channel.socketAddress, Optional.of(channel.socketPort()),
-                  channel.principal, listenerName, securityProtocol, channel.channelMetadataRegistry.clientInformation,
-                  isPrivilegedListener, channel.principalSerde)
-
-                val req = new RequestChannel.Request(processor = id, context = context,
-                  startTimeNanos = nowNanos, memoryPool, receive.payload, requestChannel.metrics, None)
-
+                var requestAndSize: Option[RequestAndSize] = None
                 // KIP-511: ApiVersionsRequest is intercepted here to catch the client software name
                 // and version. It is done here to avoid wiring things up to the api layer.
                 if (header.apiKey == ApiKeys.API_VERSIONS) {
-                  val apiVersionsRequest = req.body[ApiVersionsRequest]
+                  val result = RequestContext.staticParseRequest(header, receive.payload, connectionId, listenerName, channel.principal)
+                  val apiVersionsRequest = result.request.asInstanceOf[ApiVersionsRequest]
                   if (apiVersionsRequest.isValid) {
                     channel.channelMetadataRegistry.registerClientInformation(new ClientInformation(
                       apiVersionsRequest.data.clientSoftwareName,
                       apiVersionsRequest.data.clientSoftwareVersion))
                   }
+                  requestAndSize = Some(result)
                 }
+
+                val context = new RequestContext(header, connectionId, channel.socketAddress, Optional.of(channel.socketPort()),
+                  channel.principal, listenerName, securityProtocol, channel.channelMetadataRegistry.clientInformation,
+                  isPrivilegedListener, channel.principalSerde)
+
+                val req = new RequestChannel.Request(processor = id, context = context,
+                  startTimeNanos = nowNanos, memoryPool, receive.payload, requestChannel.metrics, None, requestAndSize)
+
                 requestChannel.sendRequest(req)
                 selector.mute(connectionId)
                 handleChannelMuteEvent(connectionId, ChannelMuteEvent.REQUEST_RECEIVED)

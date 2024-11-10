@@ -63,7 +63,8 @@ object RequestChannel extends Logging {
                 val memoryPool: MemoryPool,
                 @volatile var buffer: ByteBuffer,
                 metrics: RequestChannelMetrics,
-                val envelope: Option[RequestChannel.Request] = None) extends BaseRequest {
+                val envelope: Option[RequestChannel.Request] = None,
+                val requestAndSize: Option[RequestAndSize] = None) extends BaseRequest {
     // These need to be volatile because the readers are in the network thread and the writers are in the request
     // handler threads or the purgatory threads
     @volatile var requestDequeueTimeNanos: Long = -1L
@@ -79,7 +80,7 @@ object RequestChannel extends Logging {
 
     val session: Session = new Session(context.principal, context.clientAddress)
 
-    private val bodyAndSize: RequestAndSize = context.parseRequest(buffer)
+    private val bodyAndSize: RequestAndSize = requestAndSize.getOrElse(context.parseRequest(buffer))
 
     // This is constructed on creation of a Request so that the JSON representation is computed before the request is
     // processed by the api layer. Otherwise, a ProduceRequest can occur without its data (ie. it goes into purgatory).
