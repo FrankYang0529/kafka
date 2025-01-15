@@ -178,6 +178,7 @@ org.apache.kafka.streams.StreamsBuilderTest:
 - shouldWrapProcessorsForStreamStreamSelfJoinWithSharedStoreOptimization
 - shouldWrapProcessorsForStreamTableJoin
 - shouldWrapProcessorsForStreamTableJoinWithGracePeriod
+- shouldWrapProcessorsForSuppress
 - shouldWrapProcessorsForTableAggregate
 - shouldWrapProcessorsForTableReduce
 - shouldWrapProcessorsForTableTableInnerJoin
@@ -1547,8 +1548,6 @@ org.apache.kafka.streams.kstream.internals.graph.StreamsGraphTest:
 - shouldNotOptimizeWithValueOrKeyChangingOperatorsAfterInitialKeyChange
 - shouldNotThrowNPEWithMergeNodes
 - shouldOptimizeSeveralMergeNodesWithCommonKeyChangingParent
-org.apache.kafka.streams.kstream.internals.graph.TableProcessorNodeTest:
-- shouldConvertToStringWithNullStoreBuilder
 org.apache.kafka.streams.kstream.internals.graph.TableSourceNodeTest:
 - shouldConnectStateStoreToChangelogTopic
 - shouldConnectStateStoreToInputTopicIfInputTopicIsUsedAsChangelog
@@ -2259,6 +2258,7 @@ org.apache.kafka.streams.processor.internals.RecordCollectorTest:
 - shouldSendToSpecificPartition
 - shouldSendWithNoPartition
 - shouldSendWithPartitioner
+- shouldSwallowTransactionAbortedExceptionAndNotCallProductionExceptionHandler
 - shouldThrowIfTopicIsUnknownOnSendWithPartitioner
 - shouldThrowInformativeStreamsExceptionOnKafkaExceptionFromStreamPartitioner
 - shouldThrowInformativeStreamsExceptionOnKeyAndNullValueClassCastException
@@ -4347,8 +4347,11 @@ org.apache.kafka.streams.state.internals.MaybeTest:
 - shouldUpholdHashCodeCorrectness
 org.apache.kafka.streams.state.internals.MergedSortedCacheKeyValueBytesStoreIteratorTest:
 - shouldIgnoreIfDeletedInCacheButExistsInStore
+- shouldIterateCacheOnly
 - shouldIterateOverRange
+- shouldIterateStoreOnly
 - shouldNotHaveNextIfAllCachedItemsDeleted
+- shouldNotHaveNextIfBothIteratorsInitializedEmpty
 - shouldNotHaveNextIfOnlyCacheItemsAndAllDeleted
 - shouldPeekNextKey
 - shouldPeekNextKeyReverse
