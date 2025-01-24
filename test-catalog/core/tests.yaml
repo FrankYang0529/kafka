@@ -1563,8 +1563,10 @@ kafka.log.LogCleanerTest:
 - testLogCleanerStats
 - testLogToClean
 - testLogToCleanWithUncleanableSection
+- testMaxBufferUtilizationPercentMetric
+- testMaxCleanTimeMetric
 - testMaxCleanTimeSecs
-- testMaxOverCleanerThreads
+- testMaxCompactionDelayMetrics
 - testMessageLargerThanMaxMessageSize
 - testMessageLargerThanMaxMessageSizeWithCorruptHeader
 - testMetricsActiveAfterReconfiguration
@@ -3099,8 +3101,6 @@ kafka.server.LogOffsetTest:
 - testFetchOffsetByTimestampForMaxTimestampAfterTruncate
 - testFetchOffsetByTimestampForMaxTimestampWithEmptyLog
 - testFetchOffsetByTimestampForMaxTimestampWithUnorderedTimestamps
-- testFetchOffsetsBeforeWithChangingSegmentSize
-- testFetchOffsetsBeforeWithChangingSegments
 - testGetOffsetsAfterDeleteRecords
 - testGetOffsetsBeforeEarliestTime
 - testGetOffsetsBeforeLatestTime
