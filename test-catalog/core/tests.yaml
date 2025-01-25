@@ -1592,7 +1592,6 @@ kafka.log.LogConfigTest:
 - testEnableRemoteLogStorageOnCompactedTopic
 - testFromPropsInvalid
 - testGetConfigValue
-- testInValidRemoteConfigsInZK
 - testInvalidCompactionLagConfig
 - testInvalidLocalLogRetentionProps
 - testKafkaConfigToProps
@@ -3357,7 +3356,7 @@ kafka.server.ServerShutdownTest:
 - testNoCleanShutdownAfterFailedStartupDueToCorruptLogs
 - testShutdownWithKRaftControllerUnavailable
 kafka.server.ServerTest:
-- testCreateSelfManagedKafkaMetricsContext
+- testCreateKafkaMetricsContext
 kafka.server.ShareFetchAcknowledgeRequestTest:
 - testShareAcknowledgeInitialRequestError
 - testShareAcknowledgeRequestInvalidShareSessionEpoch
