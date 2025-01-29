@@ -245,6 +245,7 @@ kafka.api.AuthorizerIntegrationTest:
 - testDescribeGroupConfigsWithoutDescribeAcl
 - testDescribeTopicAclWithOperationAll
 - testDescribeTopicConfigsAclWithOperationAll
+- testFetchConsumerRequest
 - testFetchFollowerRequest
 - testHostAddressBasedAcls
 - testIdempotentProducerNoIdempotentWriteAclInInitProducerId
@@ -3134,6 +3135,7 @@ kafka.server.MetadataRequestTest:
 - testAutoCreateTopicWithInvalidReplicationFactor
 - testAutoTopicCreation
 - testClusterIdIsValid
+- testClusterIdWithRequestVersion1
 - testIsInternal
 - testIsrAfterBrokerShutDownAndJoinsBack
 - testNoTopicsRequest
