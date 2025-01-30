@@ -1496,6 +1496,7 @@ org.apache.kafka.clients.consumer.internals.CoordinatorRequestManagerTest:
 - testNetworkTimeout
 - testNullGroupIdShouldThrow
 - testPropagateAndBackoffAfterFatalError
+- testSignalOnClose
 - testSuccessfulResponse
 org.apache.kafka.clients.consumer.internals.EagerConsumerCoordinatorTest:
 - shouldLoseAllOwnedPartitionsBeforeRejoiningAfterDroppingOutOfTheGroup
@@ -2423,6 +2424,7 @@ org.apache.kafka.clients.producer.KafkaProducerTest:
 - testTopicNotExistingInMetadata
 - testTopicRefreshInMetadata
 - testTransactionV2Produce
+- testTransactionV2ProduceWithConcurrentTransactionError
 - testTransactionalMethodThrowsWhenSenderClosed
 - testUnSubscribingNonExisingMetricsDoesntCauseError
 - testUnsubscribingCustomMetricWithSameNameAsExistingMetricDoesntAffectProducerMetric

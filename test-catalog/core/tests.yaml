@@ -2926,7 +2926,6 @@ kafka.server.KafkaApisTest:
 - testWriteShareGroupStateSuccess
 - testWriteTxnMarkersShouldAllBeIncludedInTheResponse
 kafka.server.KafkaConfigTest:
-- testAcceptsLargeNodeIdForRaftBasedCase
 - testAdvertiseConfigured
 - testAdvertiseDefaults
 - testAdvertisedListenersAllowedForKRaftControllerOnlyRole
@@ -2999,8 +2998,8 @@ kafka.server.KafkaConfigTest:
 - testPopulateSynonymsOnMapWithoutBrokerId
 - testPopulateSynonymsOnMapWithoutNodeId
 - testPortInQuorumVotersNotRequiredToMatchFirstControllerListenerPortForThisKRaftController
+- testRejectsNegativeNodeId
 - testRejectsNegativeNodeIdForRaftBasedBrokerCaseWithAutoGenEnabled
-- testRejectsNegativeNodeIdForRaftBasedCaseWithAutoGenDisabled
 - testRejectsNegativeNodeIdForRaftBasedControllerCaseWithAutoGenEnabled
 - testSaslJwksEndpointRetryDefaults
 - testSeparateControllerListenerDefinedForKRaftBrokerController
@@ -3263,6 +3262,7 @@ kafka.server.ReplicaManagerTest:
 - testClearPurgatoryOnBecomingFollower
 - testDefaultReplicaSelector
 - testDelayedFetchIncludesAbortedTransactions
+- testDelayedShareFetchPurgatoryOperationExpiration
 - testDeleteRecordsInternalTopicDeleteAllowed
 - testDeleteRecordsInternalTopicDeleteDisallowed
 - testDeltaFollowerRemovedTopic
@@ -3334,7 +3334,8 @@ kafka.server.ReplicaManagerTest:
 - testTransactionVerificationGuardOnMultiplePartitions
 - testTransactionVerificationWhenNotLeader
 - testUnknownReplicaSelector
-- testVerificationErrorConversions
+- testVerificationErrorConversionsTV1
+- testVerificationErrorConversionsTV2
 - testVerificationForTransactionalPartitionsOnly
 kafka.server.ReplicationQuotaManagerTest:
 - shouldExceedQuotaThenReturnBackBelowBoundAsTimePasses
