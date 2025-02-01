@@ -1725,10 +1725,6 @@ org.apache.kafka.clients.consumer.internals.FetchRequestManagerTest:
 - testFetchOnPausedPartition
 - testFetchPositionAfterException
 - testFetchRequestInternalError
-- testFetchRequestWithBufferedPartitionMissingLeader
-- testFetchRequestWithBufferedPartitionMissingPosition
-- testFetchRequestWithBufferedPartitionNotAssigned
-- testFetchRequestWithBufferedPartitions
 - testFetchResponseMetrics
 - testFetchResponseMetricsWithOnePartitionAtTheWrongOffset
 - testFetchResponseMetricsWithOnePartitionError
@@ -3737,6 +3733,7 @@ org.apache.kafka.common.record.FileRecordsTest:
 - testRead
 - testSearch
 - testSearchForTimestamp
+- testSliceForAlreadySlicedFileRecords
 - testSliceSizeLimitWithConcurrentWrite
 - testTruncate
 - testTruncateIfSizeIsDifferentToTargetSize
