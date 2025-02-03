@@ -1952,7 +1952,6 @@ kafka.metrics.MetricsTest:
 - testKRaftControllerMetrics
 - testLinuxIoMetrics
 - testMetricsReporterAfterDeletingTopic
-- testSessionExpireListenerMetrics
 - testUpdateJMXFilter
 - testWindowsStyleTagNames
 - testYammerMetricsCountMetric
