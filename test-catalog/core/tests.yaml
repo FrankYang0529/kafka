@@ -527,6 +527,7 @@ kafka.api.PlaintextConsumerSubscriptionTest:
 - testRe2JPatternExpandSubscription
 - testRe2JPatternSubscription
 - testRe2JPatternSubscriptionAndTopicSubscription
+- testRe2JPatternSubscriptionFetch
 - testRe2JPatternSubscriptionInvalidRegex
 - testShrinkingTopicSubscriptions
 - testSubscribeInvalidTopicCanClose
@@ -1721,6 +1722,7 @@ kafka.log.UnifiedLogTest:
 - testAppendWithNoTimestamp
 - testAppendWithOutOfOrderOffsetsThrowsException
 - testAsyncDelete
+- testBackgroundDeletionWithIOException
 - testBuildTimeIndexWhenNotAssigningOffsets
 - testCannotDeleteSegmentsAtOrAboveHighWatermark
 - testCannotIncrementLogStartOffsetPastHighWatermark
@@ -1738,6 +1740,7 @@ kafka.log.UnifiedLogTest:
 - testDuplicateAppendToFollower
 - testDuplicateAppends
 - testEmptyTransactionStillClearsVerificationGuard
+- testEnableRemoteLogStorageOnCompactedTopics
 - testEnablingVerificationWhenRequestIsAtLogLayer
 - testEndTxnWithFencedProducerEpoch
 - testFetchLatestTieredTimestampNoRemoteStorage
@@ -1784,6 +1787,7 @@ kafka.log.UnifiedLogTest:
 - testMessageSizeCheckInAppendAsFollower
 - testMultipleProducerIdsPerMemoryRecord
 - testMultipleProducersWithDuplicatesInSingleAppend
+- testNextTransactionVerificationGuardNotCleared
 - testNoOpWhenRemoteLogStorageIsDisabled
 - testNonSequentialAppend
 - testOffsetFromProducerSnapshotFile
@@ -2716,6 +2720,7 @@ kafka.server.KRaftClusterTest:
 - testCreatePartitions
 - testDefaultClientQuotas
 - testDescribeQuorumRequestToBrokers
+- testDescribeQuorumRequestToControllers
 - testDirectToControllerCommunicationFailsOnOlderMetadataVersion
 - testIncreaseNumIoThreads
 - testIncrementalAlterConfigs
@@ -3496,9 +3501,6 @@ kafka.server.metadata.BrokerMetadataPublisherTest:
 - testReloadUpdatedFilesWithoutConfigChange
 kafka.server.metadata.ClientQuotaMetadataManagerTest:
 - testHandleIpQuota
-kafka.server.metadata.MockConfigRepositoryTest:
-- testEmptyRepository
-- testSetTopicConfig
 kafka.server.share.DelayedShareFetchTest:
 - testCombineLogReadResponse
 - testDelayedShareFetchTryCompleteReturnsFalseDueToNonAcquirablePartitions
