@@ -400,6 +400,7 @@ kafka.api.PlaintextAdminIntegrationTest:
 - testClose
 - testConsumeAfterDeleteRecords
 - testConsumerGroupWithMemberMigration
+- testConsumerGroupWithMemberRemoval
 - testConsumerGroups
 - testConsumerGroupsDeprecatedConsumerGroupState
 - testCreateDeleteTopics
@@ -1797,7 +1798,6 @@ kafka.log.UnifiedLogTest:
 - testNextTransactionVerificationGuardNotCleared
 - testNoOpWhenRemoteLogStorageIsDisabled
 - testNonSequentialAppend
-- testOffsetFromProducerSnapshotFile
 - testOffsetSnapshot
 - testOldProducerEpoch
 - testPeriodicProducerIdExpiration
@@ -2771,6 +2771,8 @@ kafka.server.KafkaApisTest:
 - testDescribeConfigsWithAuthorizer
 - testDescribeProducers
 - testDescribeQuorumForwardedForKRaftClusters
+- testDescribeShareGroupOffsetsRequestEmptyGroupsSuccess
+- testDescribeShareGroupOffsetsRequestEmptyTopicsSuccess
 - testDescribeShareGroupOffsetsRequestSuccess
 - testDescribeShareGroupOffsetsRequestsAuthorizationFailed
 - testDescribeShareGroupOffsetsReturnsUnsupportedVersion
@@ -3338,6 +3340,7 @@ kafka.server.ReplicaManagerTest:
 - testReplicaSelector
 - testReplicasAreStoppedWhileInControlledShutdown
 - testSuccessfulBuildRemoteLogAuxStateMetrics
+- testTransactionAddPartitionRetry
 - testTransactionVerificationBlocksOutOfOrderSequence
 - testTransactionVerificationDynamicDisablement
 - testTransactionVerificationFlow
