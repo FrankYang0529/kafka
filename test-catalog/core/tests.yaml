@@ -1861,6 +1861,7 @@ kafka.log.remote.RemoteIndexCacheTest:
 - testConcurrentRemoveReadForCache
 - testCorrectnessForCacheAndIndexFilesWhenResizeCache
 - testCorruptCacheIndexFileExistsButNotInCache
+- testDeleteInvalidIndexFilesOnInit
 - testFetchIndexForMissingTransactionIndex
 - testFetchIndexFromRemoteStorage
 - testGetIndexAfterCacheClose
@@ -3548,6 +3549,7 @@ kafka.server.share.SharePartitionManagerTest:
 - testAcknowledgeEmptyPartitionCacheMap
 - testAcknowledgeIncorrectGroupId
 - testAcknowledgeIncorrectMemberId
+- testAcknowledgeIndividualOffsets
 - testAcknowledgeMultiplePartition
 - testAcknowledgeSinglePartition
 - testCachedTopicPartitionsForValidShareSessions
