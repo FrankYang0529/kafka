@@ -1164,12 +1164,6 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
             return KafkaVersion(node.config[config_property.INTER_BROKER_PROTOCOL_VERSION])
         return node.version
 
-    def all_nodes_topic_command_supports_bootstrap_server(self):
-        for node in self.nodes:
-            if not node.version.topic_command_supports_bootstrap_server():
-                return False
-        return True
-
     def all_nodes_topic_command_supports_if_not_exists_with_bootstrap_server(self):
         for node in self.nodes:
             if not node.version.topic_command_supports_if_not_exists_with_bootstrap_server():
@@ -1213,8 +1207,7 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         self.logger.info("Creating topic %s with settings %s",
                          topic_cfg["topic"], topic_cfg)
 
-        force_use_zk_connection = not self.all_nodes_topic_command_supports_bootstrap_server() or\
-                            (topic_cfg.get('if-not-exists', False) and not self.all_nodes_topic_command_supports_if_not_exists_with_bootstrap_server())
+        force_use_zk_connection = (topic_cfg.get('if-not-exists', False) and not self.all_nodes_topic_command_supports_if_not_exists_with_bootstrap_server())
 
         cmd = fix_opts_for_new_jvm(node)
         cmd += "%(kafka_topics_cmd)s --create --topic %(topic)s " % {
@@ -1252,11 +1245,9 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
             node = self.nodes[0]
         self.logger.info("Deleting topic %s" % topic)
 
-        force_use_zk_connection = not self.all_nodes_topic_command_supports_bootstrap_server()
-
         cmd = fix_opts_for_new_jvm(node)
         cmd += "%s --topic %s --delete" % \
-               (self.kafka_topics_cmd_with_optional_security_settings(node, force_use_zk_connection), topic)
+               (self.kafka_topics_cmd_with_optional_security_settings(node, False), topic)
         self.logger.info("Running topic delete command...\n%s" % cmd)
         node.account.ssh(cmd)
 
@@ -1287,11 +1278,10 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         """
 
         node = self.nodes[0]
-        force_use_zk_connection = not node.version.topic_command_supports_bootstrap_server()
 
         cmd = fix_opts_for_new_jvm(node)
         cmd += "%s --describe --under-replicated-partitions" % \
-            self.kafka_topics_cmd_with_optional_security_settings(node, force_use_zk_connection)
+            self.kafka_topics_cmd_with_optional_security_settings(node, False)
 
         self.logger.debug("Running topic command to describe under-replicated partitions\n%s" % cmd)
         output = ""
@@ -1307,11 +1297,9 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         if node is None:
             node = self.nodes[0]
 
-        force_use_zk_connection = not self.all_nodes_topic_command_supports_bootstrap_server()
-
         cmd = fix_opts_for_new_jvm(node)
         cmd += "%s --topic %s --describe" % \
-               (self.kafka_topics_cmd_with_optional_security_settings(node, force_use_zk_connection, offline_nodes=offline_nodes), topic)
+               (self.kafka_topics_cmd_with_optional_security_settings(node, False, offline_nodes=offline_nodes), topic)
 
         self.logger.info("Running topic describe command...\n%s" % cmd)
         output = ""
@@ -1323,10 +1311,8 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         if node is None:
             node = self.nodes[0]
 
-        force_use_zk_connection = not self.all_nodes_topic_command_supports_bootstrap_server()
-
         cmd = fix_opts_for_new_jvm(node)
-        cmd += "%s --list" % (self.kafka_topics_cmd_with_optional_security_settings(node, force_use_zk_connection))
+        cmd += "%s --list" % (self.kafka_topics_cmd_with_optional_security_settings(node, False))
         for line in node.account.ssh_capture(cmd):
             if not line.startswith("SLF4J"):
                 yield line.rstrip()
@@ -1567,31 +1553,19 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         """
         if node is None:
           node = self.nodes[0]
-        if not self.all_nodes_topic_command_supports_bootstrap_server():
-            self.logger.debug("Querying zookeeper to find in-sync replicas for topic %s and partition %d" % (topic, partition))
-            zk_path = "/brokers/topics/%s/partitions/%d/state" % (topic, partition)
-            partition_state = self.zk.query(zk_path, chroot=self.zk_chroot)
 
-            if partition_state is None:
-                raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
-
-            partition_state = json.loads(partition_state)
-            self.logger.info(partition_state)
-
-            isr_idx_list = partition_state["isr"]
+        self.logger.debug("Querying Kafka Admin API to find in-sync replicas for topic %s and partition %d" % (topic, partition))
+        describe_output = self.describe_topic(topic, node, offline_nodes=offline_nodes)
+        self.logger.debug(describe_output)
+        requested_partition_line = self._describe_topic_line_for_partition(partition, describe_output)
+        # e.g. Topic: test_topic	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2    Elr: 4  LastKnownElr: 5
+        if not requested_partition_line:
+            raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
+        isr_csv = requested_partition_line.split()[9] # 10th column from above
+        if isr_csv == "Elr:":
+            isr_idx_list = []
         else:
-            self.logger.debug("Querying Kafka Admin API to find in-sync replicas for topic %s and partition %d" % (topic, partition))
-            describe_output = self.describe_topic(topic, node, offline_nodes=offline_nodes)
-            self.logger.debug(describe_output)
-            requested_partition_line = self._describe_topic_line_for_partition(partition, describe_output)
-            # e.g. Topic: test_topic	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2    Elr: 4  LastKnownElr: 5
-            if not requested_partition_line:
-                raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
-            isr_csv = requested_partition_line.split()[9] # 10th column from above
-            if isr_csv == "Elr:":
-                isr_idx_list = []
-            else:
-                isr_idx_list = [int(i) for i in isr_csv.split(",")]
+            isr_idx_list = [int(i) for i in isr_csv.split(",")]
 
         self.logger.info("Isr for topic %s and partition %d is now: %s" % (topic, partition, isr_idx_list))
         return isr_idx_list
@@ -1600,28 +1574,16 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         """ Get the assigned replicas for the given topic and partition.
         """
         node = self.nodes[0]
-        if not self.all_nodes_topic_command_supports_bootstrap_server():
-            self.logger.debug("Querying zookeeper to find assigned replicas for topic %s and partition %d" % (topic, partition))
-            zk_path = "/brokers/topics/%s" % (topic)
-            assignment = self.zk.query(zk_path, chroot=self.zk_chroot)
 
-            if assignment is None:
-                raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
-
-            assignment = json.loads(assignment)
-            self.logger.info(assignment)
-
-            replicas = assignment["partitions"][str(partition)]
-        else:
-            self.logger.debug("Querying Kafka Admin API to find replicas for topic %s and partition %d" % (topic, partition))
-            describe_output = self.describe_topic(topic, node)
-            self.logger.debug(describe_output)
-            requested_partition_line = self._describe_topic_line_for_partition(partition, describe_output)
-            # e.g. Topic: test_topic	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2
-            if not requested_partition_line:
-                raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
-            isr_csv = requested_partition_line.split()[7] # 8th column from above
-            replicas = [int(i) for i in isr_csv.split(",")]
+        self.logger.debug("Querying Kafka Admin API to find replicas for topic %s and partition %d" % (topic, partition))
+        describe_output = self.describe_topic(topic, node)
+        self.logger.debug(describe_output)
+        requested_partition_line = self._describe_topic_line_for_partition(partition, describe_output)
+        # e.g. Topic: test_topic	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2
+        if not requested_partition_line:
+            raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
+        isr_csv = requested_partition_line.split()[7] # 8th column from above
+        replicas = [int(i) for i in isr_csv.split(",")]
 
         self.logger.info("Assigned replicas for topic %s and partition %d is now: %s" % (topic, partition, replicas))
         return [self.get_node(replica) for replica in replicas]
@@ -1630,27 +1592,15 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         """ Get the leader replica for the given topic and partition.
         """
         node = self.nodes[0]
-        if not self.all_nodes_topic_command_supports_bootstrap_server():
-            self.logger.debug("Querying zookeeper to find leader replica for topic %s and partition %d" % (topic, partition))
-            zk_path = "/brokers/topics/%s/partitions/%d/state" % (topic, partition)
-            partition_state = self.zk.query(zk_path, chroot=self.zk_chroot)
 
-            if partition_state is None:
-                raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
-
-            partition_state = json.loads(partition_state)
-            self.logger.info(partition_state)
-
-            leader_idx = int(partition_state["leader"])
-        else:
-            self.logger.debug("Querying Kafka Admin API to find leader for topic %s and partition %d" % (topic, partition))
-            describe_output = self.describe_topic(topic, node)
-            self.logger.debug(describe_output)
-            requested_partition_line = self._describe_topic_line_for_partition(partition, describe_output)
-            # e.g. Topic: test_topic	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2
-            if not requested_partition_line:
-                raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
-            leader_idx = int(requested_partition_line.split()[5]) # 6th column from above
+        self.logger.debug("Querying Kafka Admin API to find leader for topic %s and partition %d" % (topic, partition))
+        describe_output = self.describe_topic(topic, node)
+        self.logger.debug(describe_output)
+        requested_partition_line = self._describe_topic_line_for_partition(partition, describe_output)
+        # e.g. Topic: test_topic	Partition: 0	Leader: 3	Replicas: 3,2	Isr: 3,2
+        if not requested_partition_line:
+            raise Exception("Error finding partition state for topic %s and partition %d." % (topic, partition))
+        leader_idx = int(requested_partition_line.split()[5]) # 6th column from above
 
         self.logger.info("Leader for topic %s and partition %d is now: %d" % (topic, partition, leader_idx))
         return self.get_node(leader_idx)
@@ -1674,11 +1624,9 @@ class KafkaService(KafkaPathResolverMixin, JmxMixin, Service):
         if self.all_nodes_support_topic_ids():
             node = self.nodes[0]
 
-            force_use_zk_connection = not self.all_nodes_topic_command_supports_bootstrap_server()
-
             cmd = fix_opts_for_new_jvm(node)
             cmd += "%s --topic %s --describe" % \
-               (self.kafka_topics_cmd_with_optional_security_settings(node, force_use_zk_connection), topic)
+               (self.kafka_topics_cmd_with_optional_security_settings(node, False), topic)
 
             self.logger.debug(
                 "Querying topic ID by using describe topic command ...\n%s" % cmd
